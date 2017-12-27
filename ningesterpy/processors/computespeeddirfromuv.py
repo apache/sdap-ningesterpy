@@ -1,0 +1,68 @@
+"""
+Copyright (c) 2017 Jet Propulsion Laboratory,
+California Institute of Technology.  All rights reserved
+"""
+
+import numpy
+from nexusproto.serialization import from_shaped_array, to_shaped_array
+
+from processors import NexusTileProcessor
+
+
+def calculate_speed_direction(wind_u, wind_v):
+    speed = numpy.sqrt(numpy.add(numpy.multiply(wind_u, wind_u), numpy.multiply(wind_v, wind_v)))
+    direction = numpy.degrees(numpy.arctan2(-wind_u, -wind_v)) % 360
+    return speed, direction
+
+
+class ComputeSpeedDirFromUV(NexusTileProcessor):
+
+    def __init__(self, wind_u_var_name, wind_v_var_name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.wind_u_var_name = wind_u_var_name
+        self.wind_v_var_name = wind_v_var_name
+
+    def process_nexus_tile(self, nexus_tile):
+        the_tile_type = nexus_tile.tile.WhichOneof("tile_type")
+
+        the_tile_data = getattr(nexus_tile.tile, the_tile_type)
+
+        # Either wind_u or wind_v are in meta. Whichever is not in meta is in variable_data
+        try:
+            wind_v = next(meta for meta in the_tile_data.meta_data if meta.name == self.wind_v_var_name).meta_data
+            wind_u = the_tile_data.variable_data
+        except StopIteration:
+            try:
+                wind_u = next(meta for meta in the_tile_data.meta_data if meta.name == self.wind_u_var_name).meta_data
+                wind_v = the_tile_data.variable_data
+            except StopIteration:
+                if hasattr(nexus_tile, "summary"):
+                    raise RuntimeError(
+                        "Neither wind_u nor wind_v were found in the meta data for granule %s slice %s."
+                        " Cannot compute wind speed or direction." % (
+                            getattr(nexus_tile.summary, "granule", "unknown"),
+                            getattr(nexus_tile.summary, "section_spec", "unknown")))
+                else:
+                    raise RuntimeError(
+                        "Neither wind_u nor wind_v were found in the meta data. Cannot compute wind speed or direction.")
+
+        wind_u = from_shaped_array(wind_u)
+        wind_v = from_shaped_array(wind_v)
+
+        assert wind_u.shape == wind_v.shape
+
+        # Do calculation
+        wind_speed_data, wind_dir_data = calculate_speed_direction(wind_u, wind_v)
+
+        # Add wind_speed to meta data
+        wind_speed_meta = the_tile_data.meta_data.add()
+        wind_speed_meta.name = 'wind_speed'
+        wind_speed_meta.meta_data.CopyFrom(to_shaped_array(wind_speed_data))
+
+        # Add wind_dir to meta data
+        wind_dir_meta = the_tile_data.meta_data.add()
+        wind_dir_meta.name = 'wind_dir'
+        wind_dir_meta.meta_data.CopyFrom(to_shaped_array(wind_dir_data))
+
+        yield nexus_tile
