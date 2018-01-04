@@ -35,6 +35,7 @@ class NexusTileProcessor(Processor):
     def process_nexus_tile(self, nexus_tile):
         raise NotImplementedError
 
+
 # All installed processors need to be imported and added to the dict below
 
 from processors.callncpdq import CallNcpdq

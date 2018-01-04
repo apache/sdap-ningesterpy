@@ -2,14 +2,16 @@
 Copyright (c) 2017 Jet Propulsion Laboratory,
 California Institute of Technology.  All rights reserved
 """
+import logging
+
 import nexusproto.NexusContent_pb2 as nexusproto
 import numpy
-import logging
 from nexusproto.serialization import from_shaped_array
 
 from processors import NexusTileProcessor
 
 logger = logging.getLogger('emptytilefilter')
+
 
 def parse_input(nexus_tile_data):
     return nexusproto.NexusTile.FromString(nexus_tile_data)

@@ -14,7 +14,7 @@ from netCDF4 import Dataset, num2date
 from nexusproto.serialization import to_shaped_array, to_metadata
 from pytz import timezone
 
-from processors import Processor
+from processors import Processor, NexusTileProcessor
 
 EPOCH = timezone('UTC').localize(datetime.datetime(1970, 1, 1))
 
@@ -27,18 +27,13 @@ def closing(thing):
         thing.close()
 
 
-def parse_input(the_input, temp_dir):
-    # Split string on ';'
-    specs_and_path = [str(part).strip() for part in str(the_input).split(';')]
-
-    # Tile specifications are all but the last element
-    specs = specs_and_path[:-1]
+def parse_input(the_input_tile, temp_dir):
+    specs = [the_input_tile.summary.section_spec]
     # Generate a list of tuples, where each tuple is a (string, map) that represents a
     # tile spec in the form (str(section_spec), { dimension_name : slice, dimension2_name : slice })
     tile_specifications = [slices_from_spec(section_spec) for section_spec in specs]
 
-    # The path is the last element of the input split by ';'
-    file_path = specs_and_path[-1]
+    file_path = the_input_tile.summary.granule
     file_name = file_path.split(sep)[-1]
     # If given a temporary directory location, copy the file to the temporary directory and return that path
     if temp_dir is not None:
@@ -51,7 +46,7 @@ def parse_input(the_input, temp_dir):
                 file_path = temp_file_path
 
     # Remove file:// if it's there because netcdf lib doesn't like it
-    file_path = file_path[len('file://'):] if file_path.startswith('file://') else file_path
+    file_path = file_path[len('file:'):] if file_path.startswith('file:') else file_path
 
     return tile_specifications, file_path
 
@@ -92,16 +87,8 @@ def get_ordered_slices(ds, variable, dimension_to_slice):
     return ordered_slices
 
 
-def new_nexus_tile(file_path, section_spec):
-    nexus_tile = nexusproto.NexusTile()
-    tile_summary = nexusproto.TileSummary()
-    tile_summary.granule = file_path.split(sep)[-1]
-    tile_summary.section_spec = section_spec
-    nexus_tile.summary.CopyFrom(tile_summary)
-    return nexus_tile
+class TileReadingProcessor(NexusTileProcessor):
 
-
-class TileReadingProcessor(Processor):
     def __init__(self, variable_to_read, latitude, longitude, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Required properties for all reader types
@@ -116,22 +103,25 @@ class TileReadingProcessor(Processor):
         self.start_of_day_pattern = self.environ['GLBLATTR_DAY_FORMAT']
         self.time_offset = int(self.environ['TIME_OFFSET']) if self.environ['TIME_OFFSET'] is not None else None
 
-    def process(self, input_data):
-        tile_specifications, file_path = parse_input(input_data, self.temp_dir)
+    def process_nexus_tile(self, input_tile):
+        tile_specifications, file_path = parse_input(input_tile, self.temp_dir)
 
-        for data in self.read_data(tile_specifications, file_path):
-            yield data
+        output_tile = nexusproto.NexusTile()
+        output_tile.CopyFrom(input_tile)
+
+        for tile in self.read_data(tile_specifications, file_path, output_tile):
+            yield tile
 
         # If temp dir is defined, delete the temporary file
         if self.temp_dir is not None:
             remove(file_path)
 
-    def read_data(self, tile_specifications, file_path):
+    def read_data(self, tile_specifications, file_path, output_tile):
         raise NotImplementedError
 
 
 class GridReadingProcessor(TileReadingProcessor):
-    def read_data(self, tile_specifications, file_path):
+    def read_data(self, tile_specifications, file_path, output_tile):
         # Time is optional for Grid data
         time = self.environ['TIME']
 
@@ -164,10 +154,9 @@ class GridReadingProcessor(TileReadingProcessor):
                                                       timeunits=timevar.getncattr('units'),
                                                       timeoffset=self.time_offset)
 
-                nexus_tile = new_nexus_tile(file_path, section_spec)
-                nexus_tile.tile.grid_tile.CopyFrom(tile)
+                output_tile.tile.grid_tile.CopyFrom(tile)
 
-                yield nexus_tile
+                yield output_tile
 
 
 class SwathReadingProcessor(TileReadingProcessor):
@@ -177,7 +166,7 @@ class SwathReadingProcessor(TileReadingProcessor):
         # Time is required for swath data
         self.time = time
 
-    def read_data(self, tile_specifications, file_path):
+    def read_data(self, tile_specifications, file_path, output_tile):
         with Dataset(file_path) as ds:
             for section_spec, dimtoslice in tile_specifications:
                 tile = nexusproto.SwathTile()
@@ -215,10 +204,9 @@ class SwathReadingProcessor(TileReadingProcessor):
                     tile.meta_data.add().CopyFrom(
                         to_metadata(self.metadata, ds[self.metadata][tuple(ordered_slices.values())]))
 
-                nexus_tile = new_nexus_tile(file_path, section_spec)
-                nexus_tile.tile.swath_tile.CopyFrom(tile)
+                output_tile.tile.swath_tile.CopyFrom(tile)
 
-                yield nexus_tile
+                yield output_tile
 
 
 class TimeSeriesReadingProcessor(TileReadingProcessor):
@@ -228,7 +216,7 @@ class TimeSeriesReadingProcessor(TileReadingProcessor):
         # Time is required for swath data
         self.time = time
 
-    def read_data(self, tile_specifications, file_path):
+    def read_data(self, tile_specifications, file_path, output_tile):
         with Dataset(file_path) as ds:
             for section_spec, dimtoslice in tile_specifications:
                 tile = nexusproto.TimeSeriesTile()
@@ -260,7 +248,6 @@ class TimeSeriesReadingProcessor(TileReadingProcessor):
                                                   timeunits=timevar.getncattr('units'),
                                                   timeoffset=self.time_offset)
 
-                nexus_tile = new_nexus_tile(file_path, section_spec)
-                nexus_tile.tile.time_series_tile.CopyFrom(tile)
+                output_tile.tile.time_series_tile.CopyFrom(tile)
 
-                yield nexus_tile
+                yield output_tile

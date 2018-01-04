@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify, Response
 from flask.json import JSONEncoder
 from flask_accept import accept
 from google.protobuf import json_format
+from google.protobuf.json_format import ParseError
 from werkzeug.exceptions import HTTPException, BadRequest
 from werkzeug.exceptions import default_exceptions
 
@@ -50,7 +51,10 @@ def run_processor_chain():
         raise BadRequest(
             "%s missing required configuration options: %s" % (e.processor, e.missing_processor_args)) from e
 
-    input_data = parameters['input_data']
+    try:
+        input_data = json_format.Parse(parameters['input_data'], nexusproto.NexusTile)
+    except ParseError as e:
+        raise BadRequest("input_data must be a NexusTile protobuf serialized as a string") from e
 
     result = next(chain.process(input_data), None)
 

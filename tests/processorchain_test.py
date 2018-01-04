@@ -5,6 +5,8 @@ California Institute of Technology.  All rights reserved
 import unittest
 from os import path
 
+from nexusproto import NexusContent_pb2 as nexusproto
+
 from processors.processorchain import ProcessorChain
 
 
@@ -22,7 +24,13 @@ class TestRunChainMethod(unittest.TestCase):
 
         test_file = path.join(path.dirname(__file__), 'datafiles', 'empty_mur.nc4')
 
-        gen = processorchain.process("time:0:1,lat:0:1,lon:0:1;time:0:1,lat:1:2,lon:0:1;file://%s" % test_file)
+        input_tile = nexusproto.NexusTile()
+        tile_summary = nexusproto.TileSummary()
+        tile_summary.granule = "file:%s" % test_file
+        tile_summary.section_spec = "time:0:1,lat:0:10,lon:0:10"
+        input_tile.summary.CopyFrom(tile_summary)
+
+        gen = processorchain.process(input_tile)
         for message in gen:
             self.fail("Should not produce any messages. Message: %s" % message)
 
@@ -39,10 +47,15 @@ class TestRunChainMethod(unittest.TestCase):
 
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_mur.nc4')
 
-        results = list(
-            processorchain.process("time:0:1,lat:0:1,lon:0:1;time:0:1,lat:1:2,lon:0:1;file://%s" % test_file))
+        input_tile = nexusproto.NexusTile()
+        tile_summary = nexusproto.TileSummary()
+        tile_summary.granule = "file:%s" % test_file
+        tile_summary.section_spec = "time:0:1,lat:0:10,lon:0:10"
+        input_tile.summary.CopyFrom(tile_summary)
 
-        self.assertEqual(2, len(results))
+        results = list(processorchain.process(input_tile))
+
+        self.assertEqual(1, len(results))
 
     def test_run_chain_read_filter_kelvin_summarize(self):
         processor_list = [
@@ -59,10 +72,15 @@ class TestRunChainMethod(unittest.TestCase):
 
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_mur.nc4')
 
-        results = list(
-            processorchain.process("time:0:1,lat:0:1,lon:0:1;time:0:1,lat:1:2,lon:0:1;file://%s" % test_file))
+        input_tile = nexusproto.NexusTile()
+        tile_summary = nexusproto.TileSummary()
+        tile_summary.granule = "file:%s" % test_file
+        tile_summary.section_spec = "time:0:1,lat:0:10,lon:0:10"
+        input_tile.summary.CopyFrom(tile_summary)
 
-        self.assertEqual(2, len(results))
+        results = list(processorchain.process(input_tile))
+
+        self.assertEqual(1, len(results))
 
     def test_run_chain_partial_empty(self):
         processor_list = [
@@ -79,13 +97,27 @@ class TestRunChainMethod(unittest.TestCase):
 
         test_file = path.join(path.dirname(__file__), 'datafiles', 'partial_empty_mur.nc4')
 
-        results = list(
-            processorchain.process("time:0:1,lat:0:10,lon:0:10;time:0:1,lat:489:499,lon:0:10;file://%s" % test_file))
+        input_tile = nexusproto.NexusTile()
+        tile_summary = nexusproto.TileSummary()
+        tile_summary.granule = "file:%s" % test_file
+        tile_summary.section_spec = "time:0:1,lat:489:499,lon:0:10"
+        input_tile.summary.CopyFrom(tile_summary)
+
+        results = list(processorchain.process(input_tile))
 
         self.assertEqual(1, len(results))
         tile = results[0]
-
         self.assertTrue(tile.summary.HasField('bbox'), "bbox is missing")
+
+        input_tile = nexusproto.NexusTile()
+        tile_summary = nexusproto.TileSummary()
+        tile_summary.granule = "file:%s" % test_file
+        tile_summary.section_spec = "time:0:1,lat:0:10,lon:0:10"
+        input_tile.summary.CopyFrom(tile_summary)
+
+        results = list(processorchain.process(input_tile))
+
+        self.assertEqual(0, len(results))
 
 
 if __name__ == '__main__':
