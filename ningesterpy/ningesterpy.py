@@ -52,7 +52,7 @@ def run_processor_chain():
             "%s missing required configuration options: %s" % (e.processor, e.missing_processor_args)) from e
 
     try:
-        input_data = json_format.Parse(parameters['input_data'], nexusproto.NexusTile)
+        input_data = json_format.Parse(parameters['input_data'], nexusproto.NexusTile())
     except ParseError as e:
         raise BadRequest("input_data must be a NexusTile protobuf serialized as a string") from e
 
