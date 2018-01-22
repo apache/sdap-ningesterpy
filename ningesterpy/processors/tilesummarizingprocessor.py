@@ -2,7 +2,7 @@
 Copyright (c) 2016 Jet Propulsion Laboratory,
 California Institute of Technology.  All rights reserved
 """
-import nexusproto.NexusContent_pb2 as nexusproto
+from nexusproto import DataTile_pb2 as nexusproto
 import numpy
 from nexusproto.serialization import from_shaped_array
 
@@ -15,13 +15,13 @@ class NoTimeException(Exception):
 
 def find_time_min_max(tile_data):
     # Only try to grab min/max time if it exists as a ShapedArray
-    if tile_data.HasField("time") and isinstance(tile_data.time, nexusproto.ShapedArray):
+    if tile_data.time and isinstance(tile_data.time, nexusproto.ShapedArray):
         time_data = from_shaped_array(tile_data.time)
         min_time = int(numpy.nanmin(time_data).item())
         max_time = int(numpy.nanmax(time_data).item())
 
         return min_time, max_time
-    elif tile_data.HasField("time") and isinstance(tile_data.time, int):
+    elif tile_data.time and isinstance(tile_data.time, int):
         return tile_data.time, tile_data.time
 
     raise NoTimeException

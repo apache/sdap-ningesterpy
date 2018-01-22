@@ -4,7 +4,7 @@ California Institute of Technology.  All rights reserved
 """
 from collections import defaultdict
 
-import nexusproto.NexusContent_pb2 as nexusproto
+from nexusproto import DataTile_pb2 as nexusproto
 
 
 class Processor(object):

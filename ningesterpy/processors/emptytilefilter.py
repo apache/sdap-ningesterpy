@@ -4,7 +4,7 @@ California Institute of Technology.  All rights reserved
 """
 import logging
 
-import nexusproto.NexusContent_pb2 as nexusproto
+from nexusproto import DataTile_pb2 as nexusproto
 import numpy
 from nexusproto.serialization import from_shaped_array
 

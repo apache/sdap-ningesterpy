@@ -5,7 +5,7 @@ California Institute of Technology.  All rights reserved
 import unittest
 from os import path
 
-import nexusproto.NexusContent_pb2 as nexusproto
+from nexusproto import DataTile_pb2 as nexusproto
 import numpy as np
 from nexusproto.serialization import from_shaped_array
 

@@ -7,7 +7,7 @@ from os import path
 
 import numpy as np
 from nexusproto.serialization import from_shaped_array
-from nexusproto import NexusContent_pb2 as nexusproto
+from nexusproto import DataTile_pb2 as nexusproto
 
 import processors
 
@@ -40,7 +40,7 @@ class TestReadMurData(unittest.TestCase):
             the_data = np.ma.masked_invalid(from_shaped_array(tile.variable_data))
             self.assertEqual((1, 10, 10), the_data.shape)
             self.assertEqual(0, np.ma.count(the_data))
-            self.assertTrue(tile.HasField('time'))
+            self.assertTrue(tile.time)
 
     def test_read_not_empty_mur(self):
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_mur.nc4')

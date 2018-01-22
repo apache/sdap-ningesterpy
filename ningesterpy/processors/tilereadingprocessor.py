@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from os import sep, path, remove
 from urllib.request import urlopen
 
-import nexusproto.NexusContent_pb2 as nexusproto
+from nexusproto import DataTile_pb2 as nexusproto
 import numpy
 from netCDF4 import Dataset, num2date
 from nexusproto.serialization import to_shaped_array, to_metadata

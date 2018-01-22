@@ -5,7 +5,7 @@ California Institute of Technology.  All rights reserved
 import unittest
 from os import path
 
-from nexusproto import NexusContent_pb2 as nexusproto
+from nexusproto import DataTile_pb2 as nexusproto
 
 from processors.processorchain import ProcessorChain
 

@@ -1,7 +1,7 @@
 import logging
 import uuid
 
-import nexusproto.NexusContent_pb2 as nexusproto
+from nexusproto import DataTile_pb2 as nexusproto
 from flask import Flask, request, jsonify, Response
 from flask.json import JSONEncoder
 from flask_accept import accept
