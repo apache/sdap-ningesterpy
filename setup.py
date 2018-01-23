@@ -20,12 +20,12 @@ __version__ = '0.1'
 setup(
     name="ningesterpy",
     version=__version__,
-    url="https://github.jpl.nasa.gov/thuang/nexus",
+    url="https://github.com/apache/incubator-sdap-ningesterpy",
 
-    author="Team Nexus",
+    author="Frank Greguska",
 
     description="Python modules that can be used for NEXUS ingest.",
-    # long_description=open('README.md').read(),
+    long_description=open('README.md').read(),
 
     packages=find_packages(),
     test_suite="tests",
