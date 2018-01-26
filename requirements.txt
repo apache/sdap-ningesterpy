@@ -1,5 +1,5 @@
-werkzeug=0.12.2
-flask=0.12.2
+werkzeug==0.12.2
+flask==0.12.2
 flask-accept==0.0.4
 nexusproto===1.0.1-SNAPSHOT
 numpy==1.12.1

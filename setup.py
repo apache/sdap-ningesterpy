@@ -28,6 +28,9 @@ try:
 except (CalledProcessError, IOError) as e:
     raise EnvironmentError("Error installing conda packages") from e
 
+with open('requirements.txt') as f:
+    pip_requirements = f.readlines()
+
 __version__ = '1.0.0-SNAPSHOT'
 
 setup(
@@ -40,6 +43,8 @@ setup(
 
     description="Python modules that can be used for NEXUS ingest.",
     long_description=open('README.rst').read(),
+
+    install_requires=pip_requirements,
 
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     test_suite="tests",
