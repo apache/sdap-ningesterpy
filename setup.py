@@ -14,20 +14,34 @@
 # limitations under the License.
 
 from setuptools import setup, find_packages
+from subprocess import check_call, CalledProcessError
 
-__version__ = '0.1'
+try:
+    check_call(['conda', 'info'], stdout=None, stderr=None)
+except CalledProcessError as e:
+    raise EnvironmentError("This module requires conda") from e
+
+try:
+    with open('conda-requirements.txt') as f:
+        conda_requirements = f.readlines()
+    check_call(['conda', 'install', '-y', *conda_requirements])
+except (CalledProcessError, IOError) as e:
+    raise EnvironmentError("Error installing conda packages") from e
+
+__version__ = '1.0.0-SNAPSHOT'
 
 setup(
     name="ningesterpy",
     version=__version__,
     url="https://github.com/apache/incubator-sdap-ningesterpy",
 
-    author="Frank Greguska",
+    author="dev@sdap.apache.org",
+    author_email="dev@sdap.apache.org",
 
     description="Python modules that can be used for NEXUS ingest.",
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
 
-    packages=find_packages(),
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     test_suite="tests",
     platforms='any',
 
