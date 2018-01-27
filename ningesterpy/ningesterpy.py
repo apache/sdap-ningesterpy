@@ -24,7 +24,7 @@ from google.protobuf.json_format import ParseError
 from werkzeug.exceptions import HTTPException, BadRequest
 from werkzeug.exceptions import default_exceptions
 
-from processors.processorchain import ProcessorChain, ProcessorNotFound, MissingProcessorArguments
+from ningesterpy.processors.processorchain import ProcessorChain, ProcessorNotFound, MissingProcessorArguments
 
 applog = logging.getLogger(__name__)
 app = Flask(__name__)

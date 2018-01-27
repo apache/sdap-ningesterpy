@@ -17,7 +17,7 @@
 import numpy
 from nexusproto.serialization import from_shaped_array, to_shaped_array
 
-from processors import NexusTileProcessor
+from ningesterpy.processors import NexusTileProcessor
 
 
 def calculate_speed_direction(wind_u, wind_v):

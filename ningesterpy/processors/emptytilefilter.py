@@ -19,7 +19,7 @@ from nexusproto import DataTile_pb2 as nexusproto
 import numpy
 from nexusproto.serialization import from_shaped_array
 
-from processors import NexusTileProcessor
+from ningesterpy.processors import NexusTileProcessor
 
 logger = logging.getLogger('emptytilefilter')
 

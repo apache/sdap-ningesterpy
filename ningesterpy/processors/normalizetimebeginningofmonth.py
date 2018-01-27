@@ -17,7 +17,7 @@ import datetime
 
 from pytz import timezone
 
-from processors import NexusTileProcessor
+from ningesterpy.processors import NexusTileProcessor
 
 EPOCH = timezone('UTC').localize(datetime.datetime(1970, 1, 1))
 

@@ -16,7 +16,7 @@
 
 from nexusproto.serialization import from_shaped_array, to_shaped_array
 
-from processors import NexusTileProcessor
+from ningesterpy.processors import NexusTileProcessor
 
 
 class KelvinToCelsius(NexusTileProcessor):

@@ -19,8 +19,8 @@ from os import path
 import numpy as np
 from nexusproto.serialization import from_shaped_array
 
-import processors
-from processors.computespeeddirfromuv import calculate_speed_direction
+import ningesterpy.processors
+from ningesterpy.processors.computespeeddirfromuv import calculate_speed_direction
 
 
 class TestConversion(unittest.TestCase):
@@ -86,7 +86,7 @@ class TestConversion(unittest.TestCase):
 
 class TestCcmpData(unittest.TestCase):
     def setUp(self):
-        self.module = processors.ComputeSpeedDirFromUV('uwnd', 'vwnd')
+        self.module = ningesterpy.processors.ComputeSpeedDirFromUV('uwnd', 'vwnd')
 
     def test_speed_dir_computation(self):
         test_file = path.join(path.dirname(__file__), 'dumped_nexustiles', 'ccmp_nonempty_nexustile.bin')
