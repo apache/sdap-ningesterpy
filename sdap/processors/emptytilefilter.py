@@ -13,20 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 
-from nexusproto.serialization import from_shaped_array, to_shaped_array
+from nexusproto import DataTile_pb2 as nexusproto
+import numpy
+from nexusproto.serialization import from_shaped_array
 
-from ningesterpy.processors import NexusTileProcessor
+from sdap.processors import NexusTileProcessor
+
+logger = logging.getLogger('emptytilefilter')
 
 
-class KelvinToCelsius(NexusTileProcessor):
+def parse_input(nexus_tile_data):
+    return nexusproto.NexusTile.FromString(nexus_tile_data)
+
+
+class EmptyTileFilter(NexusTileProcessor):
     def process_nexus_tile(self, nexus_tile):
         the_tile_type = nexus_tile.tile.WhichOneof("tile_type")
 
         the_tile_data = getattr(nexus_tile.tile, the_tile_type)
 
-        var_data = from_shaped_array(the_tile_data.variable_data) - 273.15
+        data = from_shaped_array(the_tile_data.variable_data)
 
-        the_tile_data.variable_data.CopyFrom(to_shaped_array(var_data))
-
-        yield nexus_tile
+        # Only supply data if there is actual values in the tile
+        if data.size - numpy.count_nonzero(numpy.isnan(data)) > 0:
+            yield nexus_tile
+        elif nexus_tile.HasField("summary"):
+            logger.warning("Discarding data %s from %s because it is empty" % (
+                nexus_tile.summary.section_spec, nexus_tile.summary.granule))

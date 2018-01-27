@@ -18,7 +18,7 @@ import logging
 import os
 from subprocess import call
 
-from ningesterpy.processors import Processor
+from sdap.processors import Processor
 
 
 class CallNcpdq(Processor):

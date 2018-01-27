@@ -18,7 +18,7 @@ from os import path
 
 from nexusproto import DataTile_pb2 as nexusproto
 
-from ningesterpy.processors.processorchain import ProcessorChain
+from sdap.processors.processorchain import ProcessorChain
 
 
 class TestRunChainMethod(unittest.TestCase):

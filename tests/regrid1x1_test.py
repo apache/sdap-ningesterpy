@@ -16,7 +16,7 @@
 import os
 import unittest
 
-import ningesterpy.processors
+import sdap.processors
 
 
 def delete_file_if_exists(filename):
@@ -39,9 +39,9 @@ class TestSSHData(unittest.TestCase):
         delete_file_if_exists(self.expected_output_path)
 
     def test_ssh_grid(self):
-        regridder = ningesterpy.processors.Regrid1x1('SLA', 'Latitude', 'Longitude', 'Time',
-                                         variable_valid_range='SLA:-100.0:100.0:SLA_ERR:-5000:5000',
-                                         filename_prefix=self.prefix)
+        regridder = sdap.processors.Regrid1x1('SLA', 'Latitude', 'Longitude', 'Time',
+                                              variable_valid_range='SLA:-100.0:100.0:SLA_ERR:-5000:5000',
+                                              filename_prefix=self.prefix)
 
         results = list(regridder.process(self.test_file))
 
@@ -61,8 +61,8 @@ class TestGRACEData(unittest.TestCase):
 
     @unittest.skip
     def test_lwe_grid(self):
-        regridder = ningesterpy.processors.Regrid1x1('lwe_thickness', 'lat', 'lon', 'tim',
-                                         filename_prefix=self.prefix)
+        regridder = sdap.processors.Regrid1x1('lwe_thickness', 'lat', 'lon', 'tim',
+                                              filename_prefix=self.prefix)
 
         results = list(regridder.process(self.test_file))
 
@@ -82,8 +82,8 @@ class TestIceShelfData(unittest.TestCase):
 
     @unittest.skip
     def test_height_raw(self):
-        regridder = ningesterpy.processors.Regrid1x1('height_raw,height_filt,height_err', 'lat', 'lon', 'tim',
-                                         filename_prefix=self.prefix)
+        regridder = sdap.processors.Regrid1x1('height_raw,height_filt,height_err', 'lat', 'lon', 'tim',
+                                              filename_prefix=self.prefix)
 
         results = list(regridder.process(self.test_file))
 

@@ -13,31 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nexusproto.serialization import from_shaped_array, to_shaped_array
+import datetime
 
-from ningesterpy.processors import NexusTileProcessor
+from pytz import timezone
+
+from sdap.processors import NexusTileProcessor
+
+EPOCH = timezone('UTC').localize(datetime.datetime(1970, 1, 1))
 
 
-class Subtract180Longitude(NexusTileProcessor):
+class NormalizeTimeBeginningOfMonth(NexusTileProcessor):
     def process_nexus_tile(self, nexus_tile):
-        """
-        This method will transform longitude values in degrees_east from 0 TO 360 to -180 to 180
-
-        :param self:
-        :param nexus_tile: The nexus_tile
-        :return: Tile data with altered longitude values
-        """
-
         the_tile_type = nexus_tile.tile.WhichOneof("tile_type")
 
         the_tile_data = getattr(nexus_tile.tile, the_tile_type)
 
-        longitudes = from_shaped_array(the_tile_data.longitude)
+        time = the_tile_data.time
 
-        # Only subtract 360 if the longitude is greater than 180
-        longitudes[longitudes > 180] -= 360
+        timeObj = datetime.datetime.utcfromtimestamp(time)
 
-        the_tile_data.longitude.CopyFrom(to_shaped_array(longitudes))
+        timeObj = timeObj.replace(day=1)
+
+        timeObj = timezone('UTC').localize(timeObj)
+
+        the_tile_data.time = int((timeObj - EPOCH).total_seconds())
 
         yield nexus_tile
-

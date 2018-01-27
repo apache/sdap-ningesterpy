@@ -25,7 +25,7 @@ from netCDF4 import Dataset, num2date
 from nexusproto.serialization import to_shaped_array, to_metadata
 from pytz import timezone
 
-from ningesterpy.processors import NexusTileProcessor
+from sdap.processors import NexusTileProcessor
 
 EPOCH = timezone('UTC').localize(datetime.datetime(1970, 1, 1))
 

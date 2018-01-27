@@ -19,7 +19,7 @@ from os import path, remove
 
 from netCDF4 import Dataset
 
-from ningesterpy.processors import callncpdq
+from sdap.processors import callncpdq
 
 
 class TestMeasuresData(unittest.TestCase):

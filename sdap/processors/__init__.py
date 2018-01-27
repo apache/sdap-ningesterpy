@@ -49,17 +49,17 @@ class NexusTileProcessor(Processor):
 
 # All installed processors need to be imported and added to the dict below
 
-from ningesterpy.processors.callncpdq import CallNcpdq
-from ningesterpy.processors.callncra import CallNcra
-from ningesterpy.processors.computespeeddirfromuv import ComputeSpeedDirFromUV
-from ningesterpy.processors.emptytilefilter import EmptyTileFilter
-from ningesterpy.processors.kelvintocelsius import KelvinToCelsius
-from ningesterpy.processors.normalizetimebeginningofmonth import NormalizeTimeBeginningOfMonth
-from ningesterpy.processors.regrid1x1 import Regrid1x1
-from ningesterpy.processors.subtract180longitude import Subtract180Longitude
-from ningesterpy.processors.tilereadingprocessor import GridReadingProcessor, SwathReadingProcessor, TimeSeriesReadingProcessor
-from ningesterpy.processors.tilesummarizingprocessor import TileSummarizingProcessor
-from ningesterpy.processors.winddirspeedtouv import WindDirSpeedToUV
+from sdap.processors.callncpdq import CallNcpdq
+from sdap.processors.callncra import CallNcra
+from sdap.processors.computespeeddirfromuv import ComputeSpeedDirFromUV
+from sdap.processors.emptytilefilter import EmptyTileFilter
+from sdap.processors.kelvintocelsius import KelvinToCelsius
+from sdap.processors.normalizetimebeginningofmonth import NormalizeTimeBeginningOfMonth
+from sdap.processors.regrid1x1 import Regrid1x1
+from sdap.processors.subtract180longitude import Subtract180Longitude
+from sdap.processors.tilereadingprocessor import GridReadingProcessor, SwathReadingProcessor, TimeSeriesReadingProcessor
+from sdap.processors.tilesummarizingprocessor import TileSummarizingProcessor
+from sdap.processors.winddirspeedtouv import WindDirSpeedToUV
 
 INSTALLED_PROCESSORS = {
     "CallNcpdq": CallNcpdq,

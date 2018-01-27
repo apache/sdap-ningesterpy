@@ -15,7 +15,7 @@
 
 import inspect
 
-import ningesterpy.processors
+import sdap.processors
 
 
 class BadChainException(Exception):
@@ -39,7 +39,7 @@ class MissingProcessorArguments(Exception):
         super().__init__(message, *args)
 
 
-class ProcessorChain(ningesterpy.processors.Processor):
+class ProcessorChain(sdap.processors.Processor):
     def __init__(self, processor_list, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -47,7 +47,7 @@ class ProcessorChain(ningesterpy.processors.Processor):
         # Attempt to construct the needed processors
         for processor in processor_list:
             try:
-                processor_constructor = ningesterpy.processors.INSTALLED_PROCESSORS[processor['name']]
+                processor_constructor = sdap.processors.INSTALLED_PROCESSORS[processor['name']]
             except KeyError as e:
                 raise ProcessorNotFound(processor['name']) from e
 

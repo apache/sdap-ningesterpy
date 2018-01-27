@@ -19,7 +19,7 @@ from os import path
 import numpy as np
 from nexusproto.serialization import from_shaped_array
 
-import ningesterpy.processors
+import sdap.processors
 
 
 class TestAscatbUData(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestAscatbUData(unittest.TestCase):
         with open(test_file, 'rb') as f:
             nexustile_str = f.read()
 
-        converter = ningesterpy.processors.WindDirSpeedToUV('U')
+        converter = sdap.processors.WindDirSpeedToUV('U')
 
         results = list(converter.process(nexustile_str))
 
@@ -67,7 +67,7 @@ class TestAscatbVData(unittest.TestCase):
         with open(test_file, 'rb') as f:
             nexustile_str = f.read()
 
-        converter = ningesterpy.processors.WindDirSpeedToUV('V')
+        converter = sdap.processors.WindDirSpeedToUV('V')
 
         results = list(converter.process(nexustile_str))
 
