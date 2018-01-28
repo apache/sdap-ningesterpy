@@ -1,7 +1,7 @@
 werkzeug==0.12.2
 flask==0.12.2
 flask-accept==0.0.4
-nexusproto===1.0.1-SNAPSHOT
+nexusproto===1.0.0-SNAPSHOT
 numpy==1.12.1
 protobuf==3.2.0
 pytz==2017.2
