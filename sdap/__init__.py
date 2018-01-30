@@ -12,30 +12,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import datetime
-
-from pytz import timezone
-
-from processors import NexusTileProcessor
-
-EPOCH = timezone('UTC').localize(datetime.datetime(1970, 1, 1))
-
-
-class NormalizeTimeBeginningOfMonth(NexusTileProcessor):
-    def process_nexus_tile(self, nexus_tile):
-        the_tile_type = nexus_tile.tile.WhichOneof("tile_type")
-
-        the_tile_data = getattr(nexus_tile.tile, the_tile_type)
-
-        time = the_tile_data.time
-
-        timeObj = datetime.datetime.utcfromtimestamp(time)
-
-        timeObj = timeObj.replace(day=1)
-
-        timeObj = timezone('UTC').localize(timeObj)
-
-        the_tile_data.time = int((timeObj - EPOCH).total_seconds())
-
-        yield nexus_tile

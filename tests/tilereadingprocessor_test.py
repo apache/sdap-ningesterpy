@@ -20,12 +20,12 @@ import numpy as np
 from nexusproto.serialization import from_shaped_array
 from nexusproto import DataTile_pb2 as nexusproto
 
-import processors
+import sdap.processors
 
 
 class TestReadMurData(unittest.TestCase):
     def setUp(self):
-        self.module = processors.GridReadingProcessor('analysed_sst', 'lat', 'lon', time='time')
+        self.module = sdap.processors.GridReadingProcessor('analysed_sst', 'lat', 'lon', time='time')
 
     def test_read_empty_mur(self):
         test_file = path.join(path.dirname(__file__), 'datafiles', 'empty_mur.nc4')
@@ -82,7 +82,7 @@ class TestReadAscatbData(unittest.TestCase):
     def test_read_not_empty_ascatb(self):
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_ascatb.nc4')
 
-        swath_reader = processors.SwathReadingProcessor('wind_speed', 'lat', 'lon', time='time')
+        swath_reader = sdap.processors.SwathReadingProcessor('wind_speed', 'lat', 'lon', time='time')
 
         input_tile = nexusproto.NexusTile()
         tile_summary = nexusproto.TileSummary()
@@ -115,7 +115,7 @@ class TestReadAscatbData(unittest.TestCase):
 
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_ascatb.nc4')
 
-        swath_reader = processors.SwathReadingProcessor('wind_speed', 'lat', 'lon', time='time', meta='wind_dir')
+        swath_reader = sdap.processors.SwathReadingProcessor('wind_speed', 'lat', 'lon', time='time', meta='wind_dir')
 
         input_tile = nexusproto.NexusTile()
         tile_summary = nexusproto.TileSummary()
@@ -142,10 +142,10 @@ class TestReadSmapData(unittest.TestCase):
     def test_read_not_empty_smap(self):
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_smap.h5')
 
-        swath_reader = processors.SwathReadingProcessor('smap_sss', 'lat', 'lon',
-                                                        time='row_time',
-                                                        glblattr_day='REV_START_TIME',
-                                                        glblattr_day_format='%Y-%jT%H:%M:%S.%f')
+        swath_reader = sdap.processors.SwathReadingProcessor('smap_sss', 'lat', 'lon',
+                                                             time='row_time',
+                                                             glblattr_day='REV_START_TIME',
+                                                             glblattr_day_format='%Y-%jT%H:%M:%S.%f')
 
         input_tile = nexusproto.NexusTile()
         tile_summary = nexusproto.TileSummary()
@@ -187,7 +187,7 @@ class TestReadCcmpData(unittest.TestCase):
     def test_read_not_empty_ccmp(self):
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_ccmp.nc')
 
-        ccmp_reader = processors.GridReadingProcessor('uwnd', 'latitude', 'longitude', time='time', meta='vwnd')
+        ccmp_reader = sdap.processors.GridReadingProcessor('uwnd', 'latitude', 'longitude', time='time', meta='vwnd')
 
         input_tile = nexusproto.NexusTile()
         tile_summary = nexusproto.TileSummary()
@@ -228,7 +228,7 @@ class TestReadAvhrrData(unittest.TestCase):
     def test_read_not_empty_avhrr(self):
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_avhrr.nc4')
 
-        avhrr_reader = processors.GridReadingProcessor('analysed_sst', 'lat', 'lon', time='time')
+        avhrr_reader = sdap.processors.GridReadingProcessor('analysed_sst', 'lat', 'lon', time='time')
 
         input_tile = nexusproto.NexusTile()
         tile_summary = nexusproto.TileSummary()
@@ -270,7 +270,7 @@ class TestReadWSWMData(unittest.TestCase):
     def test_read_not_empty_wswm(self):
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_wswm.nc')
 
-        wswm_reader = processors.TimeSeriesReadingProcessor('Qout', 'lat', 'lon', 'time')
+        wswm_reader = sdap.processors.TimeSeriesReadingProcessor('Qout', 'lat', 'lon', 'time')
 
         input_tile = nexusproto.NexusTile()
         tile_summary = nexusproto.TileSummary()

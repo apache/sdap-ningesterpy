@@ -20,7 +20,7 @@ from math import sin
 import numpy
 from nexusproto.serialization import from_shaped_array, to_shaped_array
 
-from processors import NexusTileProcessor
+from sdap.processors import NexusTileProcessor
 
 
 def enum(**enums):

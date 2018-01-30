@@ -17,7 +17,7 @@ from nexusproto import DataTile_pb2 as nexusproto
 import numpy
 from nexusproto.serialization import from_shaped_array
 
-from processors import NexusTileProcessor
+from sdap.processors import NexusTileProcessor
 
 
 class NoTimeException(Exception):

@@ -15,18 +15,21 @@
 import logging
 import uuid
 
-from nexusproto import DataTile_pb2 as nexusproto
 from flask import Flask, request, jsonify, Response
 from flask.json import JSONEncoder
 from flask_accept import accept
 from google.protobuf import json_format
 from google.protobuf.json_format import ParseError
+from nexusproto import DataTile_pb2 as nexusproto
 from werkzeug.exceptions import HTTPException, BadRequest
 from werkzeug.exceptions import default_exceptions
 
-from processors.processorchain import ProcessorChain, ProcessorNotFound, MissingProcessorArguments
+from sdap.processors.processorchain import ProcessorChain, ProcessorNotFound, MissingProcessorArguments
+logging.basicConfig(format="%(asctime)s  %(levelname)s %(process)d --- [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
+                    datefmt="%Y-%m-%d %H:%M:%S")
 
 applog = logging.getLogger(__name__)
+applog.setLevel(logging.INFO)
 app = Flask(__name__)
 
 
@@ -91,8 +94,11 @@ def handle_error(e):
 
 
 if __name__ == '__main__':
+    host = '127.0.0.1'
+    port = 5000
+    applog.info("Running app on %s:%d" % (host, port))
     app.register_error_handler(Exception, handle_error)
     for ex in default_exceptions:
         app.register_error_handler(ex, handle_error)
     app.json_encoder = ProtobufJSONEncoder
-    app.run()
+    app.run(host=host, port=port)

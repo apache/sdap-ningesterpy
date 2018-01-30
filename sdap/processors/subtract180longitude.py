@@ -13,20 +13,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from nexusproto.serialization import from_shaped_array, to_shaped_array
 
-from processors import NexusTileProcessor
+from sdap.processors import NexusTileProcessor
 
 
-class KelvinToCelsius(NexusTileProcessor):
+class Subtract180Longitude(NexusTileProcessor):
     def process_nexus_tile(self, nexus_tile):
+        """
+        This method will transform longitude values in degrees_east from 0 TO 360 to -180 to 180
+
+        :param self:
+        :param nexus_tile: The nexus_tile
+        :return: Tile data with altered longitude values
+        """
+
         the_tile_type = nexus_tile.tile.WhichOneof("tile_type")
 
         the_tile_data = getattr(nexus_tile.tile, the_tile_type)
 
-        var_data = from_shaped_array(the_tile_data.variable_data) - 273.15
+        longitudes = from_shaped_array(the_tile_data.longitude)
 
-        the_tile_data.variable_data.CopyFrom(to_shaped_array(var_data))
+        # Only subtract 360 if the longitude is greater than 180
+        longitudes[longitudes > 180] -= 360
+
+        the_tile_data.longitude.CopyFrom(to_shaped_array(longitudes))
 
         yield nexus_tile
+

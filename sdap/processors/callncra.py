@@ -20,7 +20,7 @@ from subprocess import call
 
 from netCDF4 import Dataset, num2date
 
-from processors import Processor
+from sdap.processors import Processor
 
 
 class CallNcra(Processor):

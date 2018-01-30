@@ -20,7 +20,7 @@ from nexusproto import DataTile_pb2 as nexusproto
 import numpy as np
 from nexusproto.serialization import from_shaped_array
 
-import processors
+import sdap.processors
 
 
 class TestAscatbUData(unittest.TestCase):
@@ -34,7 +34,7 @@ class TestAscatbUData(unittest.TestCase):
         nexus_tile_before = nexusproto.NexusTile.FromString(nexustile_str)
         longitudes_before = from_shaped_array(nexus_tile_before.tile.swath_tile.longitude)
 
-        subtract = processors.Subtract180Longitude()
+        subtract = sdap.processors.Subtract180Longitude()
 
         results = list(subtract.process(nexustile_str))
 
@@ -54,7 +54,7 @@ class TestAscatbUData(unittest.TestCase):
         nexus_tile_before = nexusproto.NexusTile.FromString(nexustile_str)
         longitudes_before = from_shaped_array(nexus_tile_before.tile.swath_tile.longitude)
 
-        subtract = processors.Subtract180Longitude()
+        subtract = sdap.processors.Subtract180Longitude()
 
         results = list(subtract.process(nexustile_str))
 

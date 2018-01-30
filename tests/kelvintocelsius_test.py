@@ -20,12 +20,12 @@ from nexusproto import DataTile_pb2 as nexusproto
 import numpy as np
 from nexusproto.serialization import from_shaped_array
 
-import processors
+import sdap.processors
 
 
 class TestAvhrrData(unittest.TestCase):
     def setUp(self):
-        self.module = processors.KelvinToCelsius()
+        self.module = sdap.processors.KelvinToCelsius()
 
     def test_kelvin_to_celsius(self):
         test_file = path.join(path.dirname(__file__), 'dumped_nexustiles', 'avhrr_nonempty_nexustile.bin')

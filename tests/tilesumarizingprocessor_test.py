@@ -16,7 +16,7 @@
 import unittest
 from os import path
 
-import processors
+import sdap.processors
 
 
 class TestSummarizeTile(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestSummarizeTile(unittest.TestCase):
         with open(test_file, 'rb') as f:
             nexustile_str = f.read()
 
-        summarizer = processors.TileSummarizingProcessor()
+        summarizer = sdap.processors.TileSummarizingProcessor()
 
         results = list(summarizer.process(nexustile_str))
 
@@ -59,7 +59,7 @@ class TestSummarizeTile(unittest.TestCase):
         with open(test_file, 'rb') as f:
             nexustile_str = f.read()
 
-        summarizer = processors.TileSummarizingProcessor()
+        summarizer = sdap.processors.TileSummarizingProcessor()
 
         results = list(summarizer.process(nexustile_str))
 

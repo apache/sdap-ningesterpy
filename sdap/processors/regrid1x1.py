@@ -22,7 +22,7 @@ from netCDF4 import Dataset
 from pytz import timezone
 from scipy import interpolate
 
-from processors import Processor
+from sdap.processors import Processor
 
 UTC = timezone('UTC')
 ISO_8601 = '%Y-%m-%dT%H:%M:%S%z'
