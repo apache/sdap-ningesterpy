@@ -52,6 +52,7 @@ class NexusTileProcessor(Processor):
 from sdap.processors.callncpdq import CallNcpdq
 from sdap.processors.callncra import CallNcra
 from sdap.processors.computespeeddirfromuv import ComputeSpeedDirFromUV
+from sdap.processors.deleteunitaxis import DeleteUnitAxis
 from sdap.processors.emptytilefilter import EmptyTileFilter
 from sdap.processors.kelvintocelsius import KelvinToCelsius
 from sdap.processors.normalizetimebeginningofmonth import NormalizeTimeBeginningOfMonth
@@ -65,6 +66,7 @@ INSTALLED_PROCESSORS = {
     "CallNcpdq": CallNcpdq,
     "CallNcra": CallNcra,
     "ComputeSpeedDirFromUV": ComputeSpeedDirFromUV,
+    "DeleteUnitAxis": DeleteUnitAxis,
     "EmptyTileFilter": EmptyTileFilter,
     "KelvinToCelsius": KelvinToCelsius,
     "NormalizeTimeBeginningOfMonth": NormalizeTimeBeginningOfMonth,
