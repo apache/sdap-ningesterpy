@@ -26,7 +26,7 @@ class TestDeleteTimeAxis(unittest.TestCase):
     def setUp(self):
         self.module = sdap.processors.DeleteUnitAxis("time")
 
-    def test_kelvin_to_celsius(self):
+    def test_delete_time_axis(self):
         test_file = path.join(path.dirname(__file__), 'dumped_nexustiles', 'avhrr_nonempty_nexustile.bin')
 
         with open(test_file, 'rb') as f:
