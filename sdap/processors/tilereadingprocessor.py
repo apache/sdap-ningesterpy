@@ -253,11 +253,8 @@ class TimeSeriesReadingProcessor(TileReadingProcessor):
                     tile.meta_data.add().CopyFrom(
                         to_metadata(self.metadata, ds[self.metadata][tuple(ordered_slices.values())]))
 
-                timevar = ds[self.time]
-                # Note assumption is that index of time is start value in dimtoslice
-                tile.time = to_seconds_from_epoch(timevar[dimtoslice[self.time].start],
-                                                  timeunits=timevar.getncattr('units'),
-                                                  timeoffset=self.time_offset)
+                tile.time.CopyFrom(
+                    to_shaped_array(numpy.ma.filled(ds[self.time][dimtoslice[self.time]], numpy.NaN)))
 
                 output_tile.tile.time_series_tile.CopyFrom(tile)
 
