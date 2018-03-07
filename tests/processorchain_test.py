@@ -130,6 +130,39 @@ class TestRunChainMethod(unittest.TestCase):
 
         self.assertEqual(0, len(results))
 
+    def test_run_chain_promote_var(self):
+        processor_list = [
+            {'name': 'GridReadingProcessor',
+             'config': {'latitude': 'lat',
+                        'longitude': 'lon',
+                        'time': 'time',
+                        'variable_to_read': 'analysed_sst'}},
+            {'name': 'EmptyTileFilter'},
+            {'name': 'KelvinToCelsius'},
+            {'name': 'PromoteVariableToGlobalAttribute',
+             'config': {
+                 'attribute_name': 'time_i',
+                 'variable_name': 'time',
+                 'dimensioned_by': ['time']
+             }},
+            {'name': 'TileSummarizingProcessor'}
+        ]
+        processorchain = ProcessorChain(processor_list)
+
+        test_file = path.join(path.dirname(__file__), 'datafiles', 'partial_empty_mur.nc4')
+
+        input_tile = nexusproto.NexusTile()
+        tile_summary = nexusproto.TileSummary()
+        tile_summary.granule = "file:%s" % test_file
+        tile_summary.section_spec = "time:0:1,lat:489:499,lon:0:10"
+        input_tile.summary.CopyFrom(tile_summary)
+
+        results = list(processorchain.process(input_tile))
+
+        self.assertEqual(1, len(results))
+        tile = results[0]
+        self.assertEqual("1104483600", tile.summary.global_attributes[0].values[0])
+
 
 if __name__ == '__main__':
     unittest.main()
