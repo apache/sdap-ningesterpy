@@ -275,7 +275,7 @@ class TestReadWSWMData(unittest.TestCase):
         input_tile = nexusproto.NexusTile()
         tile_summary = nexusproto.TileSummary()
         tile_summary.granule = "file:%s" % test_file
-        tile_summary.section_spec = "time:0:1,rivid:0:500"
+        tile_summary.section_spec = "time:0:5832,rivid:0:1"
         input_tile.summary.CopyFrom(tile_summary)
 
         results = list(wswm_reader.process(input_tile))
@@ -287,23 +287,25 @@ class TestReadWSWMData(unittest.TestCase):
             self.assertTrue(nexus_tile.tile.HasField('time_series_tile'))
 
             tile = nexus_tile.tile.time_series_tile
-            self.assertEqual(500, from_shaped_array(tile.latitude).size)
-            self.assertEqual(500, from_shaped_array(tile.longitude).size)
-            self.assertEqual((1, 500), from_shaped_array(tile.variable_data).shape)
+            self.assertEqual(1, from_shaped_array(tile.latitude).size)
+            self.assertEqual(1, from_shaped_array(tile.longitude).size)
+            self.assertEqual((5832, 1), from_shaped_array(tile.variable_data).shape)
 
         tile1_data = np.ma.masked_invalid(from_shaped_array(results[0].tile.time_series_tile.variable_data))
-        self.assertEqual(500, np.ma.count(tile1_data))
-        self.assertAlmostEqual(41.390,
+        self.assertEqual(5832, np.ma.count(tile1_data))
+        self.assertAlmostEqual(45.837,
                                np.ma.min(
                                    np.ma.masked_invalid(from_shaped_array(results[0].tile.time_series_tile.latitude))),
                                places=3)
-        self.assertAlmostEqual(42.071,
+        self.assertAlmostEqual(-122.789,
                                np.ma.max(
-                                   np.ma.masked_invalid(from_shaped_array(results[0].tile.time_series_tile.latitude))),
+                                   np.ma.masked_invalid(from_shaped_array(results[0].tile.time_series_tile.longitude))),
                                places=3)
 
-        self.assertEqual(852098400, results[0].tile.time_series_tile.time)
-        self.assertAlmostEqual(0.009,
+        tile1_times = from_shaped_array(results[0].tile.time_series_tile.time)
+        self.assertEqual(852098400, tile1_times[0])
+        self.assertEqual(915073200, tile1_times[-1])
+        self.assertAlmostEqual(1.473,
                                np.ma.masked_invalid(from_shaped_array(results[0].tile.time_series_tile.variable_data))[
                                    0, 0],
                                places=3)
