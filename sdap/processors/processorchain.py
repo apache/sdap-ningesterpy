@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import inspect
+import re
 
 import sdap.processors
 
@@ -51,18 +52,37 @@ class ProcessorChain(sdap.processors.Processor):
             except KeyError as e:
                 raise ProcessorNotFound(processor['name']) from e
 
+            processor_config = dict(**processor['config'])
+
             missing_args = []
             for arg in inspect.signature(processor_constructor).parameters.keys():
                 if arg in ['args', 'kwargs']:
                     continue
-                if arg not in processor['config']:
+                if arg not in processor_config:
                     missing_args.append(arg)
 
+            # Need to check for list type args
+            list_pattern = re.compile('\.\d+$')
+            list_args = [k for k in processor_config if list_pattern.search(k)]
+            if list_args:
+                import itertools
+                grouped = itertools.groupby(list_args, key=lambda k: k.split('.')[0])
+                for group, grouped_args in grouped:
+                    for list_arg in grouped_args:
+                        key, idx = list_arg.split('.')
+                        if group not in processor_config:
+                            processor_config[group] = []
+
+                        processor_config[group].insert(int(idx), processor_config[list_arg])
+                        del(processor_config[list_arg])
+
+            # Check if the list args satisfied the
+            missing_args = list(filter(lambda a: a not in processor_config.keys(), missing_args))
             if missing_args:
                 raise MissingProcessorArguments(processor['name'], missing_args)
 
             if 'config' in processor.keys():
-                processor_instance = processor_constructor(**processor['config'])
+                processor_instance = processor_constructor(**processor_config)
             else:
                 processor_instance = processor_constructor()
 

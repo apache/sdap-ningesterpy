@@ -56,6 +56,7 @@ from sdap.processors.deleteunitaxis import DeleteUnitAxis
 from sdap.processors.emptytilefilter import EmptyTileFilter
 from sdap.processors.kelvintocelsius import KelvinToCelsius
 from sdap.processors.normalizetimebeginningofmonth import NormalizeTimeBeginningOfMonth
+from sdap.processors.promotevariabletoglobalattribute import PromoteVariableToGlobalAttribute
 from sdap.processors.regrid1x1 import Regrid1x1
 from sdap.processors.subtract180longitude import Subtract180Longitude
 from sdap.processors.tilereadingprocessor import GridReadingProcessor, SwathReadingProcessor, TimeSeriesReadingProcessor
@@ -70,6 +71,7 @@ INSTALLED_PROCESSORS = {
     "EmptyTileFilter": EmptyTileFilter,
     "KelvinToCelsius": KelvinToCelsius,
     "NormalizeTimeBeginningOfMonth": NormalizeTimeBeginningOfMonth,
+    "PromoteVariableToGlobalAttribute": PromoteVariableToGlobalAttribute,
     "Regrid1x1": Regrid1x1,
     "Subtract180Longitude": Subtract180Longitude,
     "GridReadingProcessor": GridReadingProcessor,

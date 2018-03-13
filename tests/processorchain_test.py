@@ -21,6 +21,63 @@ from nexusproto import DataTile_pb2 as nexusproto
 from sdap.processors.processorchain import ProcessorChain
 
 
+class TestConstructChain(unittest.TestCase):
+
+    def test_construct_chain_with_list_config(self):
+        processor_list = [
+            {'name': 'TimeSeriesReadingProcessor',
+             'config': {'latitude': 'lat',
+                        'longitude': 'lon',
+                        'time': 'time',
+                        'variable_to_read': 'Qout'}},
+            {'name': 'EmptyTileFilter', 'config': {}},
+            {'name': 'PromoteVariableToGlobalAttribute',
+             'config': {
+                 'attribute_name': 'rivid_i',
+                 'variable_name': 'rivid',
+                 'dimensioned_by.0': 'rivid',
+                 'dimensioned_by.1': 'other'
+             }},
+            {'name': 'TileSummarizingProcessor', 'config': {}}
+        ]
+
+        processorchain = ProcessorChain(processor_list)
+
+        self.assertIsNotNone(processorchain)
+
+    def test_construct_chain_with_multiple_list_config(self):
+        processor_list = [
+            {'name': 'PromoteVariableToGlobalAttribute',
+             'config': {
+                 'attribute_name': 'rivid_i',
+                 'variable_name': 'rivid',
+                 'dimensioned_by.0': 'rivid',
+                 'dimensioned_by.1': 'other',
+                 'unused.0': 'list',
+                 'unused.1': 'second'
+             }}
+        ]
+
+        processorchain = ProcessorChain(processor_list)
+
+        self.assertIsNotNone(processorchain)
+
+    def test_construct_chain_with_list_config_bad_index(self):
+        processor_list = [
+            {'name': 'PromoteVariableToGlobalAttribute',
+             'config': {
+                 'attribute_name': 'rivid_i',
+                 'variable_name': 'rivid',
+                 'dimensioned_by.0': 'rivid',
+                 'dimensioned_by.10': 'other'
+             }}
+        ]
+
+        processorchain = ProcessorChain(processor_list)
+
+        self.assertIsNotNone(processorchain)
+
+
 class TestRunChainMethod(unittest.TestCase):
     def test_run_chain_read_filter_all(self):
         processor_list = [
@@ -29,7 +86,7 @@ class TestRunChainMethod(unittest.TestCase):
                         'longitude': 'lon',
                         'time': 'time',
                         'variable_to_read': 'analysed_sst'}},
-            {'name': 'EmptyTileFilter'}
+            {'name': 'EmptyTileFilter', 'config': {}}
         ]
         processorchain = ProcessorChain(processor_list)
 
@@ -52,7 +109,7 @@ class TestRunChainMethod(unittest.TestCase):
                         'longitude': 'lon',
                         'time': 'time',
                         'variable_to_read': 'analysed_sst'}},
-            {'name': 'EmptyTileFilter'}
+            {'name': 'EmptyTileFilter', 'config': {}}
         ]
         processorchain = ProcessorChain(processor_list)
 
@@ -75,9 +132,9 @@ class TestRunChainMethod(unittest.TestCase):
                         'longitude': 'lon',
                         'time': 'time',
                         'variable_to_read': 'analysed_sst'}},
-            {'name': 'EmptyTileFilter'},
-            {'name': 'KelvinToCelsius'},
-            {'name': 'TileSummarizingProcessor'}
+            {'name': 'EmptyTileFilter', 'config': {}},
+            {'name': 'KelvinToCelsius', 'config': {}},
+            {'name': 'TileSummarizingProcessor', 'config': {}}
         ]
         processorchain = ProcessorChain(processor_list)
 
@@ -100,9 +157,9 @@ class TestRunChainMethod(unittest.TestCase):
                         'longitude': 'lon',
                         'time': 'time',
                         'variable_to_read': 'analysed_sst'}},
-            {'name': 'EmptyTileFilter'},
-            {'name': 'KelvinToCelsius'},
-            {'name': 'TileSummarizingProcessor'}
+            {'name': 'EmptyTileFilter', 'config': {}},
+            {'name': 'KelvinToCelsius', 'config': {}},
+            {'name': 'TileSummarizingProcessor', 'config': {}}
         ]
         processorchain = ProcessorChain(processor_list)
 
@@ -129,6 +186,39 @@ class TestRunChainMethod(unittest.TestCase):
         results = list(processorchain.process(input_tile))
 
         self.assertEqual(0, len(results))
+
+    def test_run_chain_promote_var(self):
+        processor_list = [
+            {'name': 'GridReadingProcessor',
+             'config': {'latitude': 'lat',
+                        'longitude': 'lon',
+                        'time': 'time',
+                        'variable_to_read': 'analysed_sst'}},
+            {'name': 'EmptyTileFilter', 'config': {}},
+            {'name': 'KelvinToCelsius', 'config': {}},
+            {'name': 'PromoteVariableToGlobalAttribute',
+             'config': {
+                 'attribute_name': 'time_i',
+                 'variable_name': 'time',
+                 'dimensioned_by.0': 'time'
+             }},
+            {'name': 'TileSummarizingProcessor', 'config': {}}
+        ]
+        processorchain = ProcessorChain(processor_list)
+
+        test_file = path.join(path.dirname(__file__), 'datafiles', 'partial_empty_mur.nc4')
+
+        input_tile = nexusproto.NexusTile()
+        tile_summary = nexusproto.TileSummary()
+        tile_summary.granule = "file:%s" % test_file
+        tile_summary.section_spec = "time:0:1,lat:489:499,lon:0:10"
+        input_tile.summary.CopyFrom(tile_summary)
+
+        results = list(processorchain.process(input_tile))
+
+        self.assertEqual(1, len(results))
+        tile = results[0]
+        self.assertEqual("1104483600", tile.summary.global_attributes[0].values[0])
 
 
 if __name__ == '__main__':
