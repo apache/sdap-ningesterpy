@@ -32,7 +32,7 @@ class NormalizeTimeBeginningOfMonth(NexusTileProcessor):
 
         timeObj = datetime.datetime.utcfromtimestamp(time)
 
-        timeObj = timeObj.replace(day=1)
+        timeObj = timeObj.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
         timeObj = timezone('UTC').localize(timeObj)
 
