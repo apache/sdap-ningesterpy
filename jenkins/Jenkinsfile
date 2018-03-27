@@ -33,8 +33,7 @@ pipeline{
         stage("Build"){
             steps{
                 unstash 'nexusproto'
-                def nexusprotoTarFile = sh returnStdout: true, script: 'find distribution -name nexusproto*.tar.gz'
-                sh "pip install ${nexusprotoTarFile}"
+                sh "pip install distribution/*.tar.gz"
                 git branch: "${env.BRANCH_NAME}", credentialsId: 'fgreg-github', url: 'https://github.com/apache/incubator-sdap-ningesterpy'
                 sh 'python setup.py sdist'
             }
