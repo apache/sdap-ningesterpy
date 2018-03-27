@@ -5,6 +5,7 @@ pipeline{
     agent {
         docker {
             image 'continuumio/miniconda3:latest'
+            args '-v $HOME/.conda:/.conda/pkgs'
         }
     }
 
