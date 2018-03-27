@@ -14,17 +14,26 @@ pipeline{
     }
 
     stages{
-        stage("Install nexusproto From Source"){
+        stage("Build nexusproto From Source"){
+            agent {
+                docker {
+                    image 'maven:3-jdk-8'
+                    args '-v $HOME/.m2:/root/.m2'
+                }
+            }
             when{
                 expression { return params.buildNexusprotoBranch ==~ /SDAP-\d+/ }
             }
             steps{
                 git branch: "${params.buildNexusprotoBranch}", credentialsId: 'fgreg-github', url: 'https://github.com/apache/incubator-sdap-nexusproto'
-                sh './gradlew clean build pythonInstall'
+                sh './gradlew clean build tarPython'
+                stash includes: 'distribution/*.tar.gz', name: 'nexusproto'
             }
         }
         stage("Build"){
             steps{
+                unstash 'nexusproto'
+                sh pip install `find distribution -name nexusproto*.tar.gz`
                 git branch: "${env.BRANCH_NAME}", credentialsId: 'fgreg-github', url: 'https://github.com/apache/incubator-sdap-ningesterpy'
                 sh 'python setup.py sdist'
             }
