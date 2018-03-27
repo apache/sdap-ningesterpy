@@ -2,12 +2,7 @@
 
 
 pipeline{
-    agent {
-        docker {
-            image 'continuumio/miniconda3:latest'
-            args '-v $HOME/.conda:/.conda/pkgs'
-        }
-    }
+    agent any
 
     parameters {
         string(defaultValue: '', description: 'Branch of the incubator-sdap-nexusproto project to build against. Leave blank to use version from pip specified in requirements (this does not currently work).', name: 'buildNexusprotoBranch')
@@ -31,6 +26,12 @@ pipeline{
             }
         }
         stage("Build"){
+            agent {
+                docker {
+                    image 'continuumio/miniconda3:latest'
+                    args '-v $HOME/.conda:/.conda/pkgs'
+                }
+            }
             steps{
                 unstash 'nexusproto'
                 sh "pip install distribution/*.tar.gz"
