@@ -9,13 +9,13 @@ pipeline{
     }
 
     parameters {
-        string(defaultValue: false, description: 'Branch of the incubator-sdap-nexusproto project to build against. Leave blank to use version from pip specified in requirements (this does not currently work).', name: 'buildNexusprotoBranch')
+        string(defaultValue: '', description: 'Branch of the incubator-sdap-nexusproto project to build against. Leave blank to use version from pip specified in requirements (this does not currently work).', name: 'buildNexusprotoBranch')
     }
 
     stages{
         stage("Install nexusproto From Source"){
             when{
-                expression { false != params.buildNexusprotoBranch }
+                expression { return params.buildNexusprotoBranch ==~ /SDAP-\d+/ }
             }
             steps{
                 git branch: "${params.buildNexusprotoBranch}", credentialsId: 'fgreg-github', url: 'https://github.com/apache/incubator-sdap-nexusproto'
