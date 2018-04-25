@@ -26,6 +26,7 @@ from werkzeug.exceptions import HTTPException, BadRequest
 from werkzeug.exceptions import default_exceptions
 
 from sdap.processors.processorchain import ProcessorChain, ProcessorNotFound, MissingProcessorArguments
+
 logging.basicConfig(format="%(asctime)s  %(levelname)s %(process)d --- [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S", stream=sys.stdout)
 
@@ -80,6 +81,11 @@ def run_processor_chain():
         result = result.SerializeToString()
 
     return Response(result, mimetype='application/octet-stream')
+
+
+@app.route('/healthcheck', methods=['GET'], )
+def health_check():
+    return ''
 
 
 def handle_error(e):
