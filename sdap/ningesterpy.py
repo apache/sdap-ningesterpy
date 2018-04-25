@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import sys
 import uuid
 
 from flask import Flask, request, jsonify, Response
@@ -26,7 +27,7 @@ from werkzeug.exceptions import default_exceptions
 
 from sdap.processors.processorchain import ProcessorChain, ProcessorNotFound, MissingProcessorArguments
 logging.basicConfig(format="%(asctime)s  %(levelname)s %(process)d --- [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
-                    datefmt="%Y-%m-%d %H:%M:%S")
+                    datefmt="%Y-%m-%d %H:%M:%S", stream=sys.stdout)
 
 applog = logging.getLogger(__name__)
 applog.setLevel(logging.INFO)
