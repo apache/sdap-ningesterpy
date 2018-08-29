@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import pprint
 import sys
 import uuid
 
@@ -101,11 +102,40 @@ def handle_error(e):
 
 
 if __name__ == '__main__':
-    host = '127.0.0.1'
-    port = 5000
-    applog.info("Running app on %s:%d" % (host, port))
+
     app.register_error_handler(Exception, handle_error)
     for ex in default_exceptions:
         app.register_error_handler(ex, handle_error)
     app.json_encoder = ProtobufJSONEncoder
-    app.run(host=host, port=port)
+    app.config.from_object('sdap.default_settings')
+    try:
+        app.config.from_envvar('NINGESTERPY_SETTINGS')
+    except RuntimeError:
+        applog.warning("NINGESTERPY_SETTINGS environment variable not set or invalid. Using default settings.")
+
+    # SERVER_NAME should be in the form of localhost:5000, 127.0.0.1:0, etc...
+    # So, split on : and take the second element as the port
+    # If the port is 0, we need to pick a random port and then tell the server to use that socket
+    if app.config['SERVER_NAME'] and int(app.config['SERVER_NAME'].split(':')[1]) == 0:
+        import socket, os
+
+        # Chose a random available port by binding to port 0
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind((app.config['SERVER_NAME'].split(':')[0], 0))
+        sock.listen()
+
+        # Tells the underlying WERKZEUG server to use the socket we just created
+        os.environ['WERKZEUG_SERVER_FD'] = str(sock.fileno())
+
+        # Update the configuration so it matches with the port we just chose
+        # (sock.getsockname will return the actual port being used, not 0)
+        app.config['SERVER_NAME'] = '%s:%d' % (sock.getsockname())
+
+    # Optionally write the current port to a file on the filesystem
+    if app.config['CREATE_PORT_FILE']:
+        with open(app.config['PORT_FILE'], 'w') as port_file:
+            port_file.write(app.config['SERVER_NAME'].split(':')[1])
+
+    applog.info("Running app on %s" % (app.config['SERVER_NAME']))
+    applog.info("Active Settings:%s" % pprint.pformat(app.config, compact=True))
+    app.run()
