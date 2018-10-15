@@ -19,7 +19,6 @@ from nexusproto.serialization import from_shaped_array
 import datetime
 import time
 import logging
-import numpy
 from netCDF4 import Dataset, num2date
 from pytz import timezone
 
@@ -31,19 +30,20 @@ EPOCH = timezone('UTC').localize(datetime.datetime(1970, 1, 1))
 class BadTimestampExtractionException(Exception):
     pass
 
-def to_seconds_from_epoch(timestamp, pattern='%Y-%m-%dT%H:%M:%S'):
+def to_seconds_from_epoch(timestamp, pattern):
     try:
-        seconds = int(time.mktime(time.strptime(timestamp[:19], pattern)))
+        seconds = int(time.mktime(time.strptime(timestamp, pattern)))
+        return seconds
     except ValueError:
-        logging.logger.error(timestamp + ' timestamp is not of the format \'%Y-%m-%dT%H:%M:%S\'')
-    return seconds
+        logging.error('{} timestamp is not of the format {}'.format(timestamp, pattern))
 
 class ExtractTimestampProcessor(NexusTileProcessor):
 
-    def __init__(self, attribute_name, *args, **kwargs):
+    def __init__(self, timestamp_name, timestamp_pattern, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.attribute_name = attribute_name
+        self.timestamp_name = timestamp_name
+        self.timestamp_pattern = timestamp_pattern
 
     def process_nexus_tile(self, nexus_tile):
         output_tile = nexusproto.DataTile_pb2.NexusTile()
@@ -55,8 +55,8 @@ class ExtractTimestampProcessor(NexusTileProcessor):
         tile_type = nexus_tile.tile.WhichOneof("tile_type")
 
         with Dataset(file_path) as ds:
-            timestamp = getattr(ds,self.attribute_name)
-            seconds = to_seconds_from_epoch(timestamp)
+            timestamp = getattr(ds,self.timestamp_name)
+            seconds = to_seconds_from_epoch(timestamp, self.timestamp_pattern)
 
             if tile_type == "grid_tile":
                 nexus_tile.tile.grid_tile.time = seconds

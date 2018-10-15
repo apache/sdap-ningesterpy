@@ -23,7 +23,7 @@ from sdap.processors.extracttimestampprocessor import BadTimestampExtractionExce
 
 class TestExtractTimestamp(unittest.TestCase):
     def setUp(self):
-        self.module = sdap.processors.ExtractTimestampProcessor('time_coverage_start')
+        self.module = sdap.processors.ExtractTimestampProcessor('time_coverage_start', '%Y-%m-%dT%H:%M:%S.000Z')
 
     def test_extract_timestamp_from_metadata(self):
         test_file = path.join(path.dirname(__file__), 'datafiles', 'not_empty_modis.nc')
