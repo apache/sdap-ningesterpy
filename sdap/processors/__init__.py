@@ -79,5 +79,7 @@ INSTALLED_PROCESSORS = {
     "SwathReadingProcessor": SwathReadingProcessor,
     "TimeSeriesReadingProcessor": TimeSeriesReadingProcessor,
     "TileSummarizingProcessor": TileSummarizingProcessor,
-    "WindDirSpeedToUV": WindDirSpeedToUV
+    "WindDirSpeedToUV": WindDirSpeedToUV,
+    "ExtractTimestampProcessor": ExtractTimestampProcessor
 }
+
