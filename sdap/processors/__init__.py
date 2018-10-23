@@ -62,6 +62,7 @@ from sdap.processors.subtract180longitude import Subtract180Longitude
 from sdap.processors.tilereadingprocessor import GridReadingProcessor, SwathReadingProcessor, TimeSeriesReadingProcessor
 from sdap.processors.tilesummarizingprocessor import TileSummarizingProcessor
 from sdap.processors.winddirspeedtouv import WindDirSpeedToUV
+from sdap.processors.extracttimestampprocessor import ExtractTimestampProcessor
 
 INSTALLED_PROCESSORS = {
     "CallNcpdq": CallNcpdq,
@@ -78,5 +79,7 @@ INSTALLED_PROCESSORS = {
     "SwathReadingProcessor": SwathReadingProcessor,
     "TimeSeriesReadingProcessor": TimeSeriesReadingProcessor,
     "TileSummarizingProcessor": TileSummarizingProcessor,
-    "WindDirSpeedToUV": WindDirSpeedToUV
+    "WindDirSpeedToUV": WindDirSpeedToUV,
+    "ExtractTimestampProcessor": ExtractTimestampProcessor
 }
+
