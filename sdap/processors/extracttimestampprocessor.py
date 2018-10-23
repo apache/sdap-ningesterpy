@@ -61,6 +61,6 @@ class ExtractTimestampProcessor(NexusTileProcessor):
             if tile_type == "grid_tile":
                 nexus_tile.tile.grid_tile.time = seconds
             else:
-                raise BadTimestampExtractionException
+                raise BadTimestampExtractionException("Unsupported tile type: {}".format(tile_type))
 
         yield nexus_tile
