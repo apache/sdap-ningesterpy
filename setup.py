@@ -31,7 +31,7 @@ except (CalledProcessError, IOError) as e:
 with open('requirements.txt') as f:
     pip_requirements = f.readlines()
 
-__version__ = '1.0.0-SNAPSHOT'
+__version__ = '1.0.0-rc1'
 
 setup(
     name="ningesterpy",
