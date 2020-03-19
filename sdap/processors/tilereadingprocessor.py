@@ -16,15 +16,16 @@
 import datetime
 from collections import OrderedDict
 from contextlib import contextmanager
-from os import sep, path, remove
+from os import path, remove, sep
 from urllib.request import urlopen
 
-from nexusproto import DataTile_pb2 as nexusproto
 import numpy
-from netCDF4 import Dataset, num2date
-from nexusproto.serialization import to_shaped_array, to_metadata
+import xarray as xr
+from cftime import num2date
 from pytz import timezone
 
+from nexusproto import DataTile_pb2 as nexusproto
+from nexusproto.serialization import to_metadata, to_shaped_array
 from sdap.processors import NexusTileProcessor
 
 EPOCH = timezone('UTC').localize(datetime.datetime(1970, 1, 1))
@@ -91,7 +92,7 @@ def to_seconds_from_epoch(date, timeunits=None, start_day=None, timeoffset=None)
 
 
 def get_ordered_slices(ds, variable, dimension_to_slice):
-    dimensions_for_variable = [str(dimension) for dimension in ds[variable].dimensions]
+    dimensions_for_variable = [str(dimension) for dimension in ds[variable].dims]
     ordered_slices = OrderedDict()
     for dimension in dimensions_for_variable:
         ordered_slices[dimension] = dimension_to_slice[dimension]
@@ -132,37 +133,38 @@ class TileReadingProcessor(NexusTileProcessor):
 
 
 class GridReadingProcessor(TileReadingProcessor):
+    def __init__(self, variable_to_read, latitude, longitude, **kwargs):
+        super().__init__(variable_to_read, latitude, longitude, **kwargs)
+        self.x_dim = kwargs.get('x_dim', longitude)
+        self.y_dim = kwargs.get('y_dim', latitude)
+
     def read_data(self, tile_specifications, file_path, output_tile):
         # Time is optional for Grid data
         time = self.environ['TIME']
 
-        with Dataset(file_path) as ds:
+        with xr.decode_cf(xr.open_dataset(file_path, decode_cf=False), decode_times=False) as ds:
             for section_spec, dimtoslice in tile_specifications:
                 tile = nexusproto.GridTile()
 
-                tile.latitude.CopyFrom(
-                    to_shaped_array(numpy.ma.filled(ds[self.latitude][dimtoslice[self.latitude]], numpy.NaN)))
-
-                tile.longitude.CopyFrom(
-                    to_shaped_array(numpy.ma.filled(ds[self.longitude][dimtoslice[self.longitude]], numpy.NaN)))
-
+                tile.latitude.CopyFrom(to_shaped_array(numpy.ma.filled(ds[self.latitude].data[dimtoslice[self.y_dim]], numpy.NaN)))
+                tile.longitude.CopyFrom(to_shaped_array(numpy.ma.filled(ds[self.longitude].data[dimtoslice[self.x_dim]], numpy.NaN)))
                 # Before we read the data we need to make sure the dimensions are in the proper order so we don't have any
                 #  indexing issues
                 ordered_slices = get_ordered_slices(ds, self.variable_to_read, dimtoslice)
                 # Read data using the ordered slices, replacing masked values with NaN
-                data_array = numpy.ma.filled(ds[self.variable_to_read][tuple(ordered_slices.values())], numpy.NaN)
+                data_array = numpy.ma.filled(ds[self.variable_to_read].data[tuple(ordered_slices.values())], numpy.NaN)
 
                 tile.variable_data.CopyFrom(to_shaped_array(data_array))
 
                 if self.metadata is not None:
                     tile.meta_data.add().CopyFrom(
-                        to_metadata(self.metadata, ds[self.metadata][tuple(ordered_slices.values())]))
+                        to_metadata(self.metadata, ds[self.metadata].data[tuple(ordered_slices.values())]))
 
                 if time is not None:
                     timevar = ds[time]
                     # Note assumption is that index of time is start value in dimtoslice
-                    tile.time = to_seconds_from_epoch(timevar[dimtoslice[time].start],
-                                                      timeunits=timevar.getncattr('units'),
+                    tile.time = to_seconds_from_epoch(timevar.data[dimtoslice[time].start],
+                                                      timeunits=timevar.attrs['units'],
                                                       timeoffset=self.time_offset)
 
                 output_tile.tile.grid_tile.CopyFrom(tile)
@@ -178,25 +180,22 @@ class SwathReadingProcessor(TileReadingProcessor):
         self.time = time
 
     def read_data(self, tile_specifications, file_path, output_tile):
-        with Dataset(file_path) as ds:
+        with xr.decode_cf(xr.open_dataset(file_path, decode_cf=False), decode_times=False) as ds:
             for section_spec, dimtoslice in tile_specifications:
                 tile = nexusproto.SwathTile()
                 # Time Lat Long Data and metadata should all be indexed by the same dimensions, order the incoming spec once using the data variable
                 ordered_slices = get_ordered_slices(ds, self.variable_to_read, dimtoslice)
-                tile.latitude.CopyFrom(
-                    to_shaped_array(numpy.ma.filled(ds[self.latitude][tuple(ordered_slices.values())], numpy.NaN)))
-
-                tile.longitude.CopyFrom(
-                    to_shaped_array(numpy.ma.filled(ds[self.longitude][tuple(ordered_slices.values())], numpy.NaN)))
+                tile.latitude.CopyFrom(to_shaped_array(numpy.ma.filled(ds[self.latitude].data[tuple(ordered_slices.values())], numpy.NaN)))
+                tile.longitude.CopyFrom(to_shaped_array(numpy.ma.filled(ds[self.longitude].data[tuple(ordered_slices.values())], numpy.NaN)))
 
                 timetile = ds[self.time][
-                    tuple([ordered_slices[time_dim] for time_dim in ds[self.time].dimensions])].astype(
+                    tuple([ordered_slices[time_dim] for time_dim in ds[self.time].dims])].astype(
                     'float64',
                     casting='same_kind',
                     copy=False)
-                timeunits = ds[self.time].getncattr('units')
+                timeunits = ds[self.time].attrs['units']
                 try:
-                    start_of_day_date = datetime.datetime.strptime(ds.getncattr(self.start_of_day),
+                    start_of_day_date = datetime.datetime.strptime(ds.attrs[self.start_of_day],
                                                                    self.start_of_day_pattern)
                 except Exception:
                     start_of_day_date = None
@@ -208,12 +207,12 @@ class SwathReadingProcessor(TileReadingProcessor):
                 tile.time.CopyFrom(to_shaped_array(timetile))
 
                 # Read the data converting masked values to NaN
-                data_array = numpy.ma.filled(ds[self.variable_to_read][tuple(ordered_slices.values())], numpy.NaN)
+                data_array = numpy.ma.filled(ds[self.variable_to_read].data[tuple(ordered_slices.values())], numpy.NaN)
                 tile.variable_data.CopyFrom(to_shaped_array(data_array))
 
                 if self.metadata is not None:
                     tile.meta_data.add().CopyFrom(
-                        to_metadata(self.metadata, ds[self.metadata][tuple(ordered_slices.values())]))
+                        to_metadata(self.metadata, ds[self.metadata].data[tuple(ordered_slices.values())]))
 
                 output_tile.tile.swath_tile.CopyFrom(tile)
 
@@ -228,33 +227,33 @@ class TimeSeriesReadingProcessor(TileReadingProcessor):
         self.time = time
 
     def read_data(self, tile_specifications, file_path, output_tile):
-        with Dataset(file_path) as ds:
+        with xr.decode_cf(xr.open_dataset(file_path, decode_cf=False), decode_times=False) as ds:
             for section_spec, dimtoslice in tile_specifications:
                 tile = nexusproto.TimeSeriesTile()
 
                 instance_dimension = next(
-                    iter([dim for dim in ds[self.variable_to_read].dimensions if dim != self.time]))
+                    iter([dim for dim in ds[self.variable_to_read].dims if dim != self.time]))
 
                 tile.latitude.CopyFrom(
-                    to_shaped_array(numpy.ma.filled(ds[self.latitude][dimtoslice[instance_dimension]], numpy.NaN)))
+                    to_shaped_array(numpy.ma.filled(ds[self.latitude].data[dimtoslice[instance_dimension]], numpy.NaN)))
 
                 tile.longitude.CopyFrom(
-                    to_shaped_array(numpy.ma.filled(ds[self.longitude][dimtoslice[instance_dimension]], numpy.NaN)))
+                    to_shaped_array(numpy.ma.filled(ds[self.longitude].data[dimtoslice[instance_dimension]], numpy.NaN)))
 
                 # Before we read the data we need to make sure the dimensions are in the proper order so we don't
                 # have any indexing issues
                 ordered_slices = get_ordered_slices(ds, self.variable_to_read, dimtoslice)
                 # Read data using the ordered slices, replacing masked values with NaN
-                data_array = numpy.ma.filled(ds[self.variable_to_read][tuple(ordered_slices.values())], numpy.NaN)
+                data_array = numpy.ma.filled(ds[self.variable_to_read].data[tuple(ordered_slices.values())], numpy.NaN)
 
                 tile.variable_data.CopyFrom(to_shaped_array(data_array))
 
                 if self.metadata is not None:
                     tile.meta_data.add().CopyFrom(
-                        to_metadata(self.metadata, ds[self.metadata][tuple(ordered_slices.values())]))
+                        to_metadata(self.metadata, ds[self.metadata].data[tuple(ordered_slices.values())]))
 
                 tile.time.CopyFrom(
-                    to_shaped_array(numpy.ma.filled(ds[self.time][dimtoslice[self.time]], numpy.NaN)))
+                    to_shaped_array(numpy.ma.filled(ds[self.time].data[dimtoslice[self.time]], numpy.NaN)))
 
                 output_tile.tile.time_series_tile.CopyFrom(tile)
 

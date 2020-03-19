@@ -311,5 +311,36 @@ class TestReadWSWMData(unittest.TestCase):
                                places=3)
 
 
+class TestReadInterpEccoData(unittest.TestCase):
+    def setUp(self):
+        self.module = sdap.processors.GridReadingProcessor('OBP', 'latitude', 'longitude', x_dim='i', y_dim='j', time='time')
+
+    def test_read_indexed_ecco(self):
+        test_file = path.join(path.dirname(__file__), 'datafiles', 'OBP_2017_01.nc')
+
+        input_tile = nexusproto.NexusTile()
+        tile_summary = nexusproto.TileSummary()
+        tile_summary.granule = "file:%s" % test_file
+        tile_summary.section_spec = "time:0:1,j:0:10,i:0:10"
+        input_tile.summary.CopyFrom(tile_summary)
+
+        results = list(self.module.process(input_tile))
+
+        self.assertEqual(1, len(results))
+
+        for nexus_tile in results:
+            self.assertTrue(nexus_tile.HasField('tile'))
+            self.assertTrue(nexus_tile.tile.HasField('grid_tile'))
+
+            tile = nexus_tile.tile.grid_tile
+            self.assertEqual(10, len(from_shaped_array(tile.latitude)))
+            self.assertEqual(10, len(from_shaped_array(tile.longitude)))
+
+            the_data = np.ma.masked_invalid(from_shaped_array(tile.variable_data))
+            self.assertEqual((1, 10, 10), the_data.shape)
+            self.assertEqual(100, np.ma.count(the_data))
+            self.assertEqual(1484568000, tile.time)
+
+
 if __name__ == '__main__':
     unittest.main()
