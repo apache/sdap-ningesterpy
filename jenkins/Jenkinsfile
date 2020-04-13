@@ -1,0 +1,48 @@
+#!groovy
+
+
+pipeline{
+    agent any
+
+    parameters {
+        string(defaultValue: '', description: 'Branch of the incubator-sdap-nexusproto project to build against. Leave blank to use version from pip specified in requirements (this does not currently work).', name: 'buildNexusprotoBranch')
+    }
+
+    stages{
+        stage("Build nexusproto From Source"){
+            agent {
+                docker {
+                    image 'maven:3-jdk-8'
+                    args '-v $HOME/.m2:/root/.m2'
+                }
+            }
+            when{
+                expression { return params.buildNexusprotoBranch ==~ /SDAP-\d+/ }
+            }
+            steps{
+                git branch: "${params.buildNexusprotoBranch}", credentialsId: 'fgreg-github', url: 'https://github.com/apache/incubator-sdap-nexusproto'
+                sh './gradlew clean build tarPython'
+                stash includes: 'distribution/*.tar.gz', name: 'nexusproto'
+            }
+        }
+        stage("Build"){
+            agent {
+                docker {
+                    image 'continuumio/miniconda3:latest'
+                    args '-v $HOME/.conda:/.conda/pkgs'
+                }
+            }
+            steps{
+                unstash 'nexusproto'
+                sh "pip install distribution/*.tar.gz"
+                git branch: "${env.BRANCH_NAME}", credentialsId: 'fgreg-github', url: 'https://github.com/apache/incubator-sdap-ningesterpy'
+                sh 'python setup.py sdist'
+            }
+        }
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true, onlyIfSuccessful: true
+        }
+    }
+}
